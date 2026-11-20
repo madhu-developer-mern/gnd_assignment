@@ -1,12 +1,12 @@
-# Django Backend Assessment
+# gnd_assignment
 
 Implement three API endpoints in the provided Django project. Use Python 3.11 or newer and an internet connection to install dependencies.
 
 ## Get started
 
 ```sh
-git clone https://github.com/Madhudeveloper123/Gnd_assestment.git
-cd Gnd_assestment
+git clone https://github.com/madhu-developer-mern/gnd_assignment.git
+cd gnd_assignment
 python manage.py setup
 ```
 
@@ -82,12 +82,4 @@ Reject unknown filter names, reversed ranges, and non-object JSON bodies.
 }
 ```
 
-This example matches Wireless Headphones and Smart Watch. For a quick check without Postman, run this from a terminal while the server is running.
-
-```sh
-curl.exe -i -X QUERY http://127.0.0.1:8000/api/items/ -H "Content-Type: application/json" -d "{\"category\":\"Electronics\"}"
-```
-
-## Postman checks
-
-Run the collection in folder order to check registration, pagination, and filtering. **Register User** generates fresh test credentials on each run. The item assertions assume the supplied sample catalog. Postman supports custom HTTP methods. [Postman request documentation](https://learning.postman.com/docs/use/send-requests/create-requests/request-basics)
+This example matches Wireless Headphones and Smart Watch.
