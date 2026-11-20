@@ -1,0 +1,677 @@
+{
+  "info": {
+    "name": "Django Backend Assessment",
+    "description": "Local requests and assertions for registration and the supplied 20-product catalog.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "registration_email",
+      "value": "madhu@example.com"
+    },
+    {
+      "key": "registration_phone",
+      "value": "9876543210"
+    }
+  ],
+  "item": [
+    {
+      "name": "Registration",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \" Madhu \",\n  \"email\": \"{{registration_email}}\",\n  \"phone_number\": \"{{registration_phone}}\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/register/"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = pm.variables.replaceIn(\"{{$guid}}\");",
+                  "const phone = String(Math.floor(Math.random() * 10000000000)).padStart(10, \"0\");",
+                  "pm.collectionVariables.set(\"registration_email\", \"madhu+\" + runId + \"@example.com\");",
+                  "pm.collectionVariables.set(\"registration_phone\", phone);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Registration response is normalized and contains no password\", () => {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.all.keys([\"id\", \"name\", \"email\", \"phone_number\", \"message\"]);",
+                  "    pm.expect(data.id).to.be.a(\"number\");",
+                  "    pm.expect(data.name).to.equal(\"Madhu\");",
+                  "    pm.expect(data.email).to.equal(pm.collectionVariables.get(\"registration_email\"));",
+                  "    pm.expect(data.phone_number).to.equal(pm.collectionVariables.get(\"registration_phone\"));",
+                  "    pm.expect(data.message).to.equal(\"User registered successfully\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \" Madhu \",\n  \"email\": \"invalid-email\",\n  \"phone_number\": \"{{registration_phone}}\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/register/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Validation errors\", () => {",
+                  "    const data = pm.response.json();",
+                  "    [\"email\"].forEach(field => pm.expect(data[field]).to.be.an(\"array\").and.not.empty);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Phone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \" Madhu \",\n  \"email\": \"{{registration_email}}\",\n  \"phone_number\": \"12a45\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/register/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Validation errors\", () => {",
+                  "    const data = pm.response.json();",
+                  "    [\"phone_number\"].forEach(field => pm.expect(data[field]).to.be.an(\"array\").and.not.empty);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \" Madhu \",\n  \"email\": \"{{registration_email}}\",\n  \"phone_number\": \"{{registration_phone}}\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/register/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Validation errors\", () => {",
+                  "    const data = pm.response.json();",
+                  "    [\"password\"].forEach(field => pm.expect(data[field]).to.be.an(\"array\").and.not.empty);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GET Items",
+      "item": [
+        {
+          "name": "Get All Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Item fields, count and order\", () => {",
+                  "    const items = pm.response.json();",
+                  "    checkItems(items);",
+                  "    pm.expect(items).to.have.lengthOf(20);",
+                  "    pm.expect(items[0].id).to.equal(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/items/?page=1&page_size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Item fields, count and order\", () => {",
+                  "    const items = pm.response.json();",
+                  "    checkItems(items);",
+                  "    pm.expect(items).to.have.lengthOf(10);",
+                  "    pm.expect(items[0].id).to.equal(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/items/?page=2&page_size=10"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Item fields, count and order\", () => {",
+                  "    const items = pm.response.json();",
+                  "    checkItems(items);",
+                  "    pm.expect(items).to.have.lengthOf(10);",
+                  "    pm.expect(items[0].id).to.equal(11);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "QUERY Items",
+      "item": [
+        {
+          "name": "All Items",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(20);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Electronics",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"eLeCtRoNiCs\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(6);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.category === \"Electronics\")).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Brand Filter",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"sOnY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(1);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.brand === \"Sony\")).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Price Range",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"min_price\": 2000,\n  \"max_price\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(7);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.price >= 2000 && item.price <= 10000)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rating",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"min_rating\": 4.5,\n  \"max_rating\": 4.7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(3);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.rating >= 4.5 && item.rating <= 4.7)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "In Stock",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"in_stock\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(17);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.stock_quantity > 0)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Multiple Filters",
+          "request": {
+            "method": "QUERY",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Electronics\",\n  \"min_price\": 1000,\n  \"max_price\": 10000,\n  \"min_rating\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/api/items/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const fields = [\"id\", \"name\", \"description\", \"category\", \"brand\", \"price\", \"discount_percentage\", \"stock_quantity\", \"rating\", \"is_available\", \"created_at\", \"updated_at\"];",
+                  "function checkItems(items) {",
+                  "    pm.expect(items).to.be.an(\"array\");",
+                  "    items.forEach(item => {",
+                  "        pm.expect(item).to.include.all.keys(fields);",
+                  "        pm.expect(item.price).to.be.a(\"number\");",
+                  "        pm.expect(item.rating).to.be.a(\"number\");",
+                  "        pm.expect(item.is_available).to.be.a(\"boolean\");",
+                  "    });",
+                  "}",
+                  "pm.test(\"Query count and item fields\", () => {",
+                  "    const result = pm.response.json();",
+                  "    pm.expect(result).to.include.all.keys([\"total\", \"items\"]);",
+                  "    checkItems(result.items);",
+                  "    pm.expect(result.total).to.equal(3);",
+                  "    pm.expect(result.total).to.equal(result.items.length);",
+                  "});",
+                  "pm.test(\"Rows match the filters\", () => {",
+                  "    pm.expect(pm.response.json().items.every(item => item.category === \"Electronics\" && item.price >= 1000 && item.price <= 10000 && item.rating >= 4)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

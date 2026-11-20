@@ -1,0 +1,12 @@
+/admin-solution/
+/Django-Backend-Assessment/project/wheels/
+*.zip
+.venv/
+.env
+.env.*
+__pycache__/
+.pytest_cache/
+.vscode/
+.idea/
+*.py[cod]
+*.sqlite3*
